@@ -28,9 +28,12 @@ const recording = process.env.RECORDING || false;
 let config = null;
 var sessionUniqueID = null;
 var striptags = require('striptags');
+var streamResponse;
+
+//set from Teneo
 var endCall = false;
 var voiceAuthObj = {};
-var streamResponse;
+var authInProgress = false;
 
 const nexmo = new Nexmo({
   apiKey: process.env.NEXMO_API_KEY,
