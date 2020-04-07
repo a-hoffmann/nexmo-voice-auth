@@ -244,7 +244,7 @@ const recognizeStream = google_stt_client
     .on('data', data => {
         processContent(data.results[0].alternatives[0].transcript);
 		//
-		doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file');)
+		doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file'))
     });
 
 /**
