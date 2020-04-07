@@ -10,7 +10,6 @@ var header = require("waveheader");
 const axios = require('axios');
 var createBuffer = require('audio-buffer-from');
 
-var Resampler = require('./resampler');
 const WaveFile = require('wavefile').WaveFile;
 var wav = new WaveFile();
 
@@ -24,9 +23,6 @@ const voiceName = process.env.NEXMO_VOICE || 'Brian';
 const sttLang = process.env.STT_LANG_CODE || 'en-GB';
 const ttsLang = process.env.TTS_LANG_CODE || 'en-GB';
 const ttsGender = process.env.TTS_GENDER || 'NEUTRAL';
-
-const testEndpoint = process.env.TEST_ENDPOINT;
-const testVoiceName = process.env.TEST_VOICE_NAME;
 
 const recording = process.env.RECORDING || false;
 let config = null;
@@ -268,30 +264,6 @@ async function sendTranscriptVoiceNoSave(transcript) {
 				}
     }
 	
-	if(tts_response_provider === "test") {
-		axios.post(testEndpoint, {
-		Text: transcript,
-        Checkbox: true,
-        Person: testVoiceName 
-  }).then(function (testResponse) {
-	  
-	  wav.fromBase64(testResponse.data.encoded);
-	  wav.toSampleRate(8000, {method: "linear"}); //other supported: cubic
-	  
-		formatForNexmo(wav.toBuffer(),320).forEach(function(aud) {
-			streamResponse.send(aud);
-		//slow
-		});
-		
-		if (endCall) {
-			
-					nexmo.calls.update(CALL_UUID,{action:'hangup'},console.log('call ended'))
-					//streamResponse.close()
-				}
-  }).catch(function (error) {
-    console.log(error);
-  });
-    }
 
     // Nexmo voice response
     else if(tts_response_provider === "nexmo") {
