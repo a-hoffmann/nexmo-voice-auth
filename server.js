@@ -217,7 +217,7 @@ async function doAuth(userId, phrase, token, rec) {
 		userId: userId,
         contentLanguage: "en-US",
         phrase: phrase,
-	recording: rec}).then(function (result) { console.log(result.responseCode) });	
+	recording: rec}).then(function (result) { console.log("response from voiceid ",result.responseCode) });	
 }
 
 /**
