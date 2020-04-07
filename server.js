@@ -210,10 +210,10 @@ async function sendStream(msg) {
     await recognizeStream.write(msg);
 }
 
-async function doAuth(userId, phrase, token, rec) {
+async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase ", phrase);
 	console.log("rec is ", rec);
-	let buff = new Buffer(rec);
+	let buff = Buffer.from(rec);
 let base64data = buff.toString('base64');
 console.log(base64data);
 	//include file processing / writing here if the format is right
@@ -237,7 +237,7 @@ const recognizeStream = google_stt_client
     .on('error', console.error)
     .on('data', data => {
         processContent(data.results[0].alternatives[0].transcript);
-		if (authInProgress) {doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, voiceAuthObj.token, stream_request)}
+		if (authInProgress) {doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, msg)}
     });
 
 /**
