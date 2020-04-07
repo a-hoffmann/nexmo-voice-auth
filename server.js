@@ -184,7 +184,6 @@ app.ws('/socket', (ws, req) => {
         else {
             sendStream(msg)
 			//if authInProgress: send to voiceit also
-			if (authInProgress) {doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, voiceAuthObj.token, msg)}
         }
     });
 
@@ -209,7 +208,7 @@ async function sendStream(msg) {
 }
 
 async function doAuth(userId, phrase, token, rec) {
-	console.log(rec);
+	console.log("starting auth");
     axios.post("https://api.voiceit.io/verification/voice", {
 		headers: {
     'Authorization': `Basic ${token}`
@@ -228,6 +227,7 @@ const recognizeStream = google_stt_client
     .on('error', console.error)
     .on('data', data => {
         processContent(data.results[0].alternatives[0].transcript);
+		if (authInProgress) {doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, voiceAuthObj.token, stream_request)}
     });
 
 /**
