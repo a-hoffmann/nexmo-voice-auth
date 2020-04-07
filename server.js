@@ -29,6 +29,7 @@ let config = null;
 var sessionUniqueID = null;
 var striptags = require('striptags');
 var endCall = false;
+var voiceAuthObj = {};
 var streamResponse;
 
 const nexmo = new Nexmo({
@@ -131,7 +132,7 @@ app.get('/webhooks/answer', (req, res) => {
     let nccoResponse = [
 	{
     "action": "talk",
-    "text": ((voiceName==="Mizuki") ? "IVRシステムへようこそ。 " : "Hello and welcome to the IVR system."),
+    "text": "Hello, this is the IVR test system."),
     "voiceName": voiceName,
     "bargeIn": false
   },
@@ -176,9 +177,11 @@ app.ws('/socket', (ws, req) => {
 			console.log('setting calluuid as ',CALL_UUID)
         }
 
-        // Send the user input as byte array to Google TTS
+        // Send the user input as byte array to Google STT
         else {
             sendStream(msg)
+			//if authInProgress: send to voiceit also
+			if (authInProgress) {doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, voiceAuthObj.token, msg)}
         }
     });
 
@@ -194,8 +197,24 @@ app.ws('/socket', (ws, req) => {
 const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`Server started using port ${port}!`));
 
+
+/**
+ * Auth goes here
+ */
 async function sendStream(msg) {
     await recognizeStream.write(msg);
+}
+
+async function doAuth(userId, phrase, token, rec) {
+	console.log(rec);
+    axios.post("https://api.voiceit.io/verification/voice", {
+		headers: {
+    'Authorization': `Basic ${token}`
+  },
+		userId: userId,
+        contentLanguage: "en-US",
+        phrase: phrase,
+	recording: rec}).then(function (result) { console.log(result.responseCode) });	
 }
 
 /**
@@ -213,7 +232,6 @@ const recognizeStream = google_stt_client
  * After this is completed, Google or Nexmo TTS is initiated.
  * @param transcript Transcripted text from Google
  */
-
 async function processContent(transcript) {
     await TIE.sendInput(process.env.TENEO_ENGINE_URL, sessionUniqueID, { text: transcript, channel: 'IVR'} )
         .then((response) => {
@@ -222,9 +240,10 @@ async function processContent(transcript) {
 				transcript = response.output.text
                 if (!response.output.parameters.isSSML) { striptags(transcript) }
 				console.log("Bot response: " + transcript);
-				if (response.output.parameters.endCall==="true") {
-					console.log('set endcall to true');
-					endCall=true;
+				if (response.output.parameters.authInProgress==="true") {
+					authInProgress = true
+					voiceAuthObj=response.output.parameters.voiceAuthObj;
+					console.log("auth in progress, obj is ",voiceAuthObj)
 				}
                 return response
             }
@@ -258,12 +277,9 @@ async function sendTranscriptVoiceNoSave(transcript) {
 			streamResponse.send(aud);
 		});
 		if (endCall) {
-			
 					nexmo.calls.update(CALL_UUID,{action:'hangup'},console.log('call ended'))
-					//streamResponse.close()
 				}
     }
-	
 
     // Nexmo voice response
     else if(tts_response_provider === "nexmo") {
