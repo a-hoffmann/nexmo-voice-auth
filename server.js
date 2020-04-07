@@ -208,7 +208,11 @@ app.listen(port, () => console.log(`Server started using port ${port}!`));
  */
 async function sendStream(msg) {
     await recognizeStream.write(msg);
-	if (authInProgress) {doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, msg)}
+	//read from the stream somehow?
+	if (authInProgress) {//create a temp stream
+	var file = fs.createWriteStream('./temp.file');
+	file.write(msg);
+	}
 }
 
 async function doAuth(userId, phrase, rec) {
@@ -239,7 +243,8 @@ const recognizeStream = google_stt_client
     .on('error', console.error)
     .on('data', data => {
         processContent(data.results[0].alternatives[0].transcript);
-		
+		//
+		doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file');)
     });
 
 /**
