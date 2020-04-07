@@ -30,6 +30,9 @@ var sessionUniqueID = null;
 var striptags = require('striptags');
 var streamResponse;
 
+const voiceit2 = require('voiceit2-nodejs');
+var myVoiceIt = new voiceit2(process.env.VOICEIT_KEY, process.env.VOICEIT_TOKEN);
+
 //set from Teneo
 var endCall = false;
 var voiceAuthObj = {};
@@ -208,15 +211,22 @@ async function sendStream(msg) {
 }
 
 async function doAuth(userId, phrase, token, rec) {
-	console.log("starting auth");
-    axios.post("https://api.voiceit.io/verification/voice", {
-		headers: {
-    'Authorization': `Basic ${token}`
-  },
-		userId: userId,
-        contentLanguage: "en-US",
-        phrase: phrase,
-	recording: rec}).then(function (result) { console.log("response from voiceid ",result.responseCode) });	
+	console.log("starting auth with phrase ", phrase);
+	console.log("rec is ", rec);
+	let buff = new Buffer(rec);
+let base64data = buff.toString('base64');
+console.log(base64data);
+	//include file processing / writing here if the format is right
+	
+	myVoiceIt.voiceVerification({
+  userId : userId,
+  contentLanguage : "en-US",
+  phrase : phrase,
+  audioFilePath : base64data
+},(jsonResponse)=>{
+  //handle response
+  console.log("response from voiceid ",jsonResponse.responseCode)
+});
 }
 
 /**
