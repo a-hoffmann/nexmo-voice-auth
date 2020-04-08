@@ -216,7 +216,7 @@ async function sendStream(msg) {
 	
 	file = fs.createWriteStream('./temp.file');
 	file.write(msg);
-	
+	console.log("wrote to filestream", msg.length)
 
 	/*const writeFile = util.promisify(fs.writeFile);
 
@@ -230,12 +230,12 @@ async function sendStream(msg) {
 async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
 	console.log("rec is", rec);
-	 var bufs = [];
+	/* var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
 rec.on('end', function(){
   var buf = Buffer.concat(bufs);
 let base64data = buf.toString('base64');
-	console.log(base64data);
+	console.log(base64data);*/
 	//include file processing / writing here if the format is right
 	
 	myVoiceIt.voiceVerification({
@@ -248,7 +248,7 @@ let base64data = buf.toString('base64');
   console.log(jsonResponse);
   console.log("response from voiceid ",jsonResponse.responseCode);
   authInProgress=false
-}); });
+}); //});
 }
 
 /**
@@ -261,7 +261,9 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
+		console.log("file is now ",file.length)
 		file.end()
+		console.log("file has ended, now ",file.length)
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
 	}
     });
