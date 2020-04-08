@@ -217,7 +217,7 @@ async function sendStream(msg) {
 }
 
 async function doAuth(userId, phrase, rec) {
-	console.log("starting auth with phrase ", phrase);
+	console.log("starting auth with phrase", phrase);
 	 
 	var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
@@ -236,6 +236,7 @@ rec.on('end', function(){
   audioFilePath : base64data
 },(jsonResponse)=>{
   //handle response
+  console.log(jsonResponse);
   console.log("response from voiceid ",jsonResponse.responseCode);
   authInProgress=false
 });
