@@ -227,16 +227,16 @@ async function sendStream(msg) {
 	}
 }
 
-function doAuth(userId, phrase, rec) {
+async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
 	console.log("rec is", rec); //
-	var temp = fs.createWriteStream('./temp.file')
+	file = fs.createWriteStream('./temp.file')
 	
-	temp.write(rec);
-	temp.end()
-	temp.on('finish', function() {	
+	file.write(rec);
+	file.end()
+	file.on('finish', function() {	
 		
-		console.log("completed temp is",temp);
+		console.log("completed temp is",file);
 		
 	/* var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
