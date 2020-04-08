@@ -32,7 +32,7 @@ var streamResponse;
 
 const voiceit2 = require('voiceit2-nodejs');
 var myVoiceIt = new voiceit2(process.env.VOICEIT_KEY, process.env.VOICEIT_TOKEN);
-var file = null;
+const AUDIO_FILE_NAME = 'verif.wav';
 
 //set from Teneo
 var endCall = false;
@@ -211,35 +211,30 @@ async function sendStream(msg) {
     await recognizeStream.write(msg);
 	//read from the stream somehow?
 	if (authInProgress) {//create a temp stream
-	file = fs.createWriteStream('./temp.file');
-	file.write(msg);
+	 const writeFile = util.promisify(fs.writeFile);
+
+    // Write the binary audio content to a local file
+    await writeFile(AUDIO_FILE_NAME, msg, 'binary');
+
+    console.log('Audio content written to file: ' + AUDIO_FILE_NAME);
 	}
 }
 
 async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
 	 
-	var bufs = [];
-	rec.on('data', function(d){ bufs.push(d); });
-rec.on('end', function(){
-  var buf = Buffer.concat(bufs);
-
-	
-	let base64data = buf.toString('base64');
-	console.log(base64data);
 	//include file processing / writing here if the format is right
 	
 	myVoiceIt.voiceVerification({
   userId : userId,
   contentLanguage : "en-US",
   phrase : phrase,
-  audioFilePath : base64data
+  audioFilePath : 'https://' + your_hostname + '/' + AUDIO_FILE_NAME
 },(jsonResponse)=>{
   //handle response
   console.log(jsonResponse);
   console.log("response from voiceid ",jsonResponse.responseCode);
   authInProgress=false
-});
 });
 }
 
@@ -253,8 +248,7 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
-		file.end()
-		//doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file'))
+
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
 	}
     });
