@@ -235,8 +235,7 @@ async function sendStream(msg) {
 	}
 }
 
-async function doAuth(userId, phrase) {
-	var rec = fs.createReadStream('./temp.file');
+async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
 	console.log("rec is", rec);
 	/* var bufs = [];
@@ -270,11 +269,11 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
-		file = fs.createWriteStream('./temp.file');
+		file = fs.createReadStream('./temp.file');
 		file.write(Buffer.from(msgBufd));
-		file.end()
-		console.log("file has ended, now ",file)
-		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day");
+		file.end();
+		console.log("file has ended, now ",file);
+		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", file);
 	}
     });
 
