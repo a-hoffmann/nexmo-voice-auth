@@ -261,7 +261,6 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
-		console.log("file is now ",file.length)
 		file = fs.createWriteStream('./temp.file');
 		file.write(msgBufd);
 		file.end()
