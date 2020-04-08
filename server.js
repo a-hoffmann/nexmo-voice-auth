@@ -278,7 +278,7 @@ const recognizeStream = google_stt_client
 		//fs.createReadStream('./temp.file').pipe(Buffer.from(msgBufd));
 		file.end(function() {console.log('seems to have written out, starting auth');*/
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", Buffer.from(msgBufd));
-		});
+		
 	}
     });
 
