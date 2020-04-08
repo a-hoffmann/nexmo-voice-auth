@@ -227,7 +227,7 @@ async function sendStream(msg) {
 	}
 }
 
-async function doAuth(userId, phrase, rec) {
+function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
 	console.log("rec is", rec); //
 	var temp = fs.createWriteStream('./temp.file')
