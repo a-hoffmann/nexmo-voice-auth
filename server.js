@@ -237,7 +237,11 @@ async function sendStream(msg) {
 
 async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
-	console.log("rec is", fs.createReadStream('./temp.file')); //
+	console.log("rec is", rec); //
+	var temp = fs.createWriteStream('./temp.file')
+	
+	temp.write(rec);
+	temp.end(function() {
 	/* var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
 rec.on('end', function(){
@@ -256,7 +260,7 @@ let base64data = buf.toString('base64');
   console.log(jsonResponse);
   console.log("response from voiceid ",jsonResponse.responseCode);
   authInProgress=false
-}); //});
+}); });
 }
 
 /**
@@ -269,11 +273,11 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
-		file = fs.createWriteStream('./temp.file');
+		/*file = fs.createWriteStream('./temp.file');
 		file.write(Buffer.from(msgBufd));
-		fs.createReadStream('./temp.file').pipe(Buffer.from(msgBufd));
-		file.end(function() {console.log('seems to have written out, starting auth');
-		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", "hiteher");
+		//fs.createReadStream('./temp.file').pipe(Buffer.from(msgBufd));
+		file.end(function() {console.log('seems to have written out, starting auth');*/
+		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", Buffer.from(msgBufd));
 		});
 	}
     });
