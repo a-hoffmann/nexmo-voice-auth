@@ -34,6 +34,7 @@ const voiceit2 = require('voiceit2-nodejs');
 var myVoiceIt = new voiceit2(process.env.VOICEIT_KEY, process.env.VOICEIT_TOKEN);
 const AUDIO_FILE_NAME = 'verif.wav';
 var file = null;
+var msgBufd = [];
 
 //set from Teneo
 var endCall = false;
@@ -214,9 +215,8 @@ async function sendStream(msg) {
 	//create a temp stream
 	//write msg into it
 	
-	file = fs.createWriteStream('./temp.file');
-	file.write(msg);
-	console.log("wrote to filestream", msg.length)
+	msgBufd.push(msg);
+	
 
 	/*const writeFile = util.promisify(fs.writeFile);
 
@@ -262,6 +262,8 @@ const recognizeStream = google_stt_client
 		//
 	if (authInProgress) {
 		console.log("file is now ",file.length)
+		file = fs.createWriteStream('./temp.file');
+		file.write(msgBufd);
 		file.end()
 		console.log("file has ended, now ",file)
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
