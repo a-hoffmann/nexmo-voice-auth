@@ -204,6 +204,11 @@ app.ws('/socket', (ws, req) => {
 const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`Server started using port ${port}!`));
 
+// Refresh to keep the session alive
+setInterval(function () {
+    ws.send("");
+}, 25000);
+
 
 /**
  * Auth goes here
@@ -262,7 +267,7 @@ const recognizeStream = google_stt_client
 		//
 	if (authInProgress) {
 		file = fs.createWriteStream('./temp.file');
-		file.write(msgBufd);
+		file.write(Buffer.from(msgBufd));
 		file.end()
 		console.log("file has ended, now ",file)
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
