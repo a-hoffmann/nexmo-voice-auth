@@ -196,6 +196,13 @@ app.ws('/socket', (ws, req) => {
     ws.on('close', () => {
         recognizeStream.destroy();
     })
+	
+	// Refresh to keep the session alive
+setInterval(function () {
+    ws.send("");
+}, 25000);
+
+	
 });
 
 /**
@@ -204,10 +211,6 @@ app.ws('/socket', (ws, req) => {
 const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`Server started using port ${port}!`));
 
-// Refresh to keep the session alive
-setInterval(function () {
-    ws.send("");
-}, 25000);
 
 
 /**
