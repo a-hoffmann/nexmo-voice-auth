@@ -242,6 +242,8 @@ async function doAuth(userId, phrase, rec) {
 	
 	temp.write(rec);
 	temp.end(function() {
+		
+		console.log("temp is",temp);
 	/* var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
 rec.on('end', function(){
