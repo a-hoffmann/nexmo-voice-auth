@@ -32,6 +32,7 @@ var streamResponse;
 
 const voiceit2 = require('voiceit2-nodejs');
 var myVoiceIt = new voiceit2(process.env.VOICEIT_KEY, process.env.VOICEIT_TOKEN);
+var file;
 
 //set from Teneo
 var endCall = false;
@@ -210,7 +211,7 @@ async function sendStream(msg) {
     await recognizeStream.write(msg);
 	//read from the stream somehow?
 	if (authInProgress) {//create a temp stream
-	var file = fs.createWriteStream('./temp.file');
+	file = fs.createWriteStream('./temp.file');
 	file.write(msg);
 	}
 }
@@ -218,8 +219,13 @@ async function sendStream(msg) {
 async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase ", phrase);
 	console.log("rec is ", rec);
-	let buff = Buffer.from(rec);
-	let base64data = buff.toString('base64');
+	var bufs = [];
+	rec.on('data', function(d){ bufs.push(d); });
+rec.on('end', function(){
+  var buf = Buffer.concat(bufs);
+}
+	
+	let base64data = buf.toString('base64');
 	console.log(base64data);
 	//include file processing / writing here if the format is right
 	
@@ -244,6 +250,7 @@ const recognizeStream = google_stt_client
     .on('data', data => {
         processContent(data.results[0].alternatives[0].transcript);
 		//
+		file.end()
 		doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file'))
     });
 
