@@ -218,7 +218,7 @@ async function sendStream(msg) {
 
 async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase ", phrase);
-	console.log("rec is ", rec);
+	 
 	var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
 rec.on('end', function(){
@@ -253,7 +253,8 @@ const recognizeStream = google_stt_client
 		//
 	if (authInProgress) {
 		file.end()
-		doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file'))
+		//doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file'))
+		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
 	}
     });
 
