@@ -233,10 +233,10 @@ async function doAuth(userId, phrase, rec) {
 	var temp = fs.createWriteStream('./temp.file')
 	
 	temp.write(rec);
-	temp.on("end", function() {	
-		console.log("temp is",temp);
-		temp.end()
-		console.log("ended temp is",temp);
+	temp.end()
+	temp.on('finish', function() {	
+		
+		console.log("completed temp is",temp);
 		
 	/* var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
