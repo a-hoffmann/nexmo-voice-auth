@@ -242,7 +242,7 @@ let base64data = buf.toString('base64');
   userId : userId,
   contentLanguage : "en-US",
   phrase : phrase,
-  audioFilePath : 'https://' + your_hostname + '/' + AUDIO_FILE_NAME
+  audioFilePath : './temp.file'
 },(jsonResponse)=>{
   //handle response
   console.log(jsonResponse);
