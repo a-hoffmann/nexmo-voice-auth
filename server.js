@@ -224,14 +224,6 @@ async function sendStream(msg) {
 	//write msg into it
 	
 	msgBufd.push(msg);
-	
-
-	/*const writeFile = util.promisify(fs.writeFile);
-
-    // Write the binary audio content to a local file
-    await writeFile(AUDIO_FILE_NAME, msg, 'binary');
-
-    console.log('Audio content written to file: ' + AUDIO_FILE_NAME);*/
 	}
 }
 
