@@ -32,7 +32,7 @@ var streamResponse;
 
 const voiceit2 = require('voiceit2-nodejs');
 var myVoiceIt = new voiceit2(process.env.VOICEIT_KEY, process.env.VOICEIT_TOKEN);
-var file;
+var file = null;
 
 //set from Teneo
 var endCall = false;
@@ -251,8 +251,10 @@ const recognizeStream = google_stt_client
     .on('data', data => {
         processContent(data.results[0].alternatives[0].transcript);
 		//
+	if (authInProgress) {
 		file.end()
 		doAuth(voiceAuthObj.userId, voiceAuthObj.phraseToSay, fs.createReadStream('./temp.file'))
+	}
     });
 
 /**
