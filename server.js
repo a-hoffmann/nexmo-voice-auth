@@ -261,7 +261,7 @@ const recognizeStream = google_stt_client
 		//
 	if (authInProgress) {
 		file.end()
-		await doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
+		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
 	}
     });
 
