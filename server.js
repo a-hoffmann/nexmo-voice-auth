@@ -198,9 +198,9 @@ app.ws('/socket', (ws, req) => {
     })
 	
 	// Refresh to keep the session alive
-setInterval(function () {
+/*setInterval(function () {
     ws.send("");
-}, 25000);
+}, 25000);*/
 
 	
 });
@@ -271,8 +271,9 @@ const recognizeStream = google_stt_client
 	if (authInProgress) {
 		file = fs.createWriteStream('./temp.file');
 		file.write(Buffer.from(msgBufd));
-		file.end(function() {console.log('seems to have written out')});
+		file.end(function() {console.log('seems to have written out, starting auth');
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
+		});
 	}
     });
 
