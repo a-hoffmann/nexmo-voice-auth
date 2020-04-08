@@ -270,9 +270,8 @@ const recognizeStream = google_stt_client
 		//
 	if (authInProgress) {
 		file = fs.createWriteStream('./temp.file');
-		(Buffer.from(msgBufd)).pipe(file);
-		//file.end();
-		console.log("file has ended, now ",file);
+		file.write(Buffer.from(msgBufd));
+		file.end(function() {console.log('seems to have written out'});
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
 	}
     });
