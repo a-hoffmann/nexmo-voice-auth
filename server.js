@@ -223,7 +223,7 @@ async function doAuth(userId, phrase, rec) {
 	rec.on('data', function(d){ bufs.push(d); });
 rec.on('end', function(){
   var buf = Buffer.concat(bufs);
-}
+
 	
 	let base64data = buf.toString('base64');
 	console.log(base64data);
@@ -238,6 +238,7 @@ rec.on('end', function(){
   //handle response
   console.log("response from voiceid ",jsonResponse.responseCode);
   authInProgress=false
+});
 });
 }
 
