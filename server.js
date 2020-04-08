@@ -33,6 +33,7 @@ var streamResponse;
 const voiceit2 = require('voiceit2-nodejs');
 var myVoiceIt = new voiceit2(process.env.VOICEIT_KEY, process.env.VOICEIT_TOKEN);
 const AUDIO_FILE_NAME = 'verif.wav';
+var file = null;
 
 //set from Teneo
 var endCall = false;
