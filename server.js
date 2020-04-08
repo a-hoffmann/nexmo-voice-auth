@@ -263,7 +263,7 @@ const recognizeStream = google_stt_client
 	if (authInProgress) {
 		console.log("file is now ",file.length)
 		file.end()
-		console.log("file has ended, now ",file.length)
+		console.log("file has ended, now ",file)
 		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
 	}
     });
