@@ -222,7 +222,7 @@ async function sendStream(msg) {
 	if (authInProgress) {
 	//create a temp stream
 	//write msg into it
-	
+	console.log("pushed msg ",msg,"to buf");
 	msgBufd.push(msg);
 	}
 }
@@ -232,7 +232,7 @@ async function doAuth(userId, phrase, rec) {
 	console.log("rec is", rec); //
 	file = fs.createWriteStream('./temp.file')
 	
-	file.write(rec);
+	file.write("crusten fusten");
 	file.end()
 	file.on('finish', function() {	
 		
@@ -269,6 +269,7 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
+		console.log('msgBufd',msgBufd);
 		/*file = fs.createWriteStream('./temp.file');
 		file.write(Buffer.from(msgBufd));
 		//fs.createReadStream('./temp.file').pipe(Buffer.from(msgBufd));
