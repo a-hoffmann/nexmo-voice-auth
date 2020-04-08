@@ -187,7 +187,6 @@ app.ws('/socket', (ws, req) => {
         // Send the user input as byte array to Google STT
         else {
             sendStream(msg)
-			//if authInProgress: send to voiceit also
         }
     });
 
@@ -209,20 +208,33 @@ app.listen(port, () => console.log(`Server started using port ${port}!`));
  */
 async function sendStream(msg) {
     await recognizeStream.write(msg);
-	//read from the stream somehow?
-	if (authInProgress) {//create a temp stream
-	 const writeFile = util.promisify(fs.writeFile);
+	
+	if (authInProgress) {
+	//create a temp stream
+	//write msg into it
+	
+	file = fs.createWriteStream('./temp.file');
+	file.write(msg);
+	
+
+	/*const writeFile = util.promisify(fs.writeFile);
 
     // Write the binary audio content to a local file
     await writeFile(AUDIO_FILE_NAME, msg, 'binary');
 
-    console.log('Audio content written to file: ' + AUDIO_FILE_NAME);
+    console.log('Audio content written to file: ' + AUDIO_FILE_NAME);*/
 	}
 }
 
 async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
-	 
+	console.log("rec is", rec);
+	 var bufs = [];
+	rec.on('data', function(d){ bufs.push(d); });
+rec.on('end', function(){
+  var buf = Buffer.concat(bufs);
+let base64data = buf.toString('base64');
+	console.log(base64data);
 	//include file processing / writing here if the format is right
 	
 	myVoiceIt.voiceVerification({
@@ -235,7 +247,7 @@ async function doAuth(userId, phrase, rec) {
   console.log(jsonResponse);
   console.log("response from voiceid ",jsonResponse.responseCode);
   authInProgress=false
-});
+}); });
 }
 
 /**
@@ -248,8 +260,8 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
-
-		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
+		file.end()
+		await doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", fs.createReadStream('./temp.file'));
 	}
     });
 
