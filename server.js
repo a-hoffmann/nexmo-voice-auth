@@ -287,10 +287,10 @@ const recognizeStream = google_stt_client
 			else {verifAudio = Buffer.concat(msgBufd)}
 			console.log("auth for user ",voiceItUserId);
 			const runAuth = util.promisify(doAuth);
-		runAuth(voiceItUserId, passphrase, verifAudio).then(authResult => {
+			runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
 		console.log("passing in an authresult of ", authResult);
 		processContentAuth(data.results[0].alternatives[0].transcript, authResult);
-		});
+		}).catch((err) => {console.log(err)});
 	}
     });
 
