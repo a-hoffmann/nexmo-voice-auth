@@ -251,7 +251,7 @@ async function doAuth(userId, phrase, rec) {
     // Write the binary audio content to a local file
     await writeFile(AUDIO_FILE_NAME, rec, 'binary');
 	
-	await myVoiceIt.voiceVerificationByUrl({
+	return await myVoiceIt.voiceVerificationByUrl({
   userId : userId,
   contentLanguage : "en-US",
   phrase : phrase,
