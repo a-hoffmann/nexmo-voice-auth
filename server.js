@@ -299,7 +299,7 @@ const recognizeStream = google_stt_client
  * After this is completed, Google or Nexmo TTS is initiated.
  * @param transcript Transcripted text from Google
  */
-async function processContent(transcript, authResult) {
+async function processContent(transcript) {
     await TIE.sendInput(process.env.TENEO_ENGINE_URL, sessionUniqueID, { text: transcript, channel: 'IVR'} )
         .then((response) => {
                 console.log("Speech-to-text user output: " + transcript);
@@ -324,7 +324,7 @@ async function processContent(transcript, authResult) {
  * After this is completed, Google or Nexmo TTS is initiated.
  * @param transcript Transcripted text from Google
  */
-async function processContentAuth(transcript) {
+async function processContentAuth(transcript, authResult) {
     await TIE.sendInput(process.env.TENEO_ENGINE_URL, sessionUniqueID, { text: transcript, channel: 'IVR', verifyResult: authResult} )
         .then((response) => {
                 console.log("Speech-to-text user output: " + transcript);
