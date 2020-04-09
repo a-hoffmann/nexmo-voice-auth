@@ -251,20 +251,6 @@ async function doAuth(userId, phrase, rec) {
     // Write the binary audio content to a local file
     await writeFile(AUDIO_FILE_NAME, rec, 'binary');
 	
-	/* 
-	file.end()
-	file.on('finish', function() {	
-		
-		console.log("completed temp is",file);
-		
-	var bufs = [];
-	rec.on('data', function(d){ bufs.push(d); });
-rec.on('end', function(){
-  var buf = Buffer.concat(bufs);
-let base64data = buf.toString('base64');
-	console.log(base64data);*/
-	//include file processing / writing here if the format is right
-	
 	myVoiceIt.voiceVerificationByUrl({
   userId : userId,
   contentLanguage : "en-US",
@@ -272,9 +258,12 @@ let base64data = buf.toString('base64');
   audioFileURL : 'https://' + your_hostname + '/' + AUDIO_FILE_NAME
 },(jsonResponse)=>{
   //handle response
+  
   console.log(jsonResponse);
-  console.log("response from voiceid ",jsonResponse.responseCode);
-  authInProgress=false
+  
+  authInProgress=false;
+  
+  return jsonResponse.confidence;
 }); //});
 }
 
@@ -285,19 +274,11 @@ const recognizeStream = google_stt_client
     .streamingRecognize(stream_request)
     .on('error', console.error)
     .on('data', data => {
+		if (!authInProgress) {
         processContent(data.results[0].alternatives[0].transcript);
 		//
+		}
 	if (authInProgress) {
-		/*console.log('msgBufd, concat',Buffer.concat(msgBufd));
-		console.log('msgBufd, joind',Buffer.from(msgBufd.join('')).toString('base64'));
-		console.log('-----------------');
-		console.log(Buffer.concat(msgBufd).toString('base64') === Buffer.from(msgBufd.join('')).toString('base64'))
-		console.log('-----------------');*/
-		/*file = fs.createWriteStream('./temp.file');
-		file.write(Buffer.from(msgBufd));
-		//fs.createReadStream('./temp.file').pipe(Buffer.from(msgBufd));
-		file.end(function() {console.log('seems to have written out, starting auth');*/
-
 		var verifAudio;
 		//length of audio must be < 5 sec, we can trim before concatenating
 		if (msgBufd.length>250) {
@@ -307,7 +288,8 @@ const recognizeStream = google_stt_client
 			}
 			else {verifAudio = Buffer.concat(msgBufd)}
 			console.log("auth for user ",voiceItUserId);
-		doAuth(voiceItUserId, passphrase, verifAudio);
+		let authResult = doAuth(voiceItUserId, passphrase, verifAudio);
+		processContentAuth(data.results[0].alternatives[0].transcript, authResult);
 		
 	}
     });
@@ -317,8 +299,33 @@ const recognizeStream = google_stt_client
  * After this is completed, Google or Nexmo TTS is initiated.
  * @param transcript Transcripted text from Google
  */
-async function processContent(transcript) {
+async function processContent(transcript, authResult) {
     await TIE.sendInput(process.env.TENEO_ENGINE_URL, sessionUniqueID, { text: transcript, channel: 'IVR'} )
+        .then((response) => {
+                console.log("Speech-to-text user output: " + transcript);
+				//insert SSML here
+				transcript = response.output.text
+                if (!response.output.parameters.isSSML) { striptags(transcript) }
+				console.log("Bot response: " + transcript);
+				if (response.output.parameters.authInProgress==="true") {
+					authInProgress = true
+					voiceAuthObj=response.output.parameters.voiceAuthObj;
+					console.log("auth to be started, obj is ",voiceAuthObj)
+				}
+                return response
+            }
+        ).then(({sessionId}) => sessionUniqueID = sessionId);
+		
+    sendTranscriptVoiceNoSave(transcript);
+}
+
+/**
+ * processContent is an asynchronous function to send input and retrieve output from a Teneo instance.
+ * After this is completed, Google or Nexmo TTS is initiated.
+ * @param transcript Transcripted text from Google
+ */
+async function processContentAuth(transcript) {
+    await TIE.sendInput(process.env.TENEO_ENGINE_URL, sessionUniqueID, { text: transcript, channel: 'IVR', verifyResult: authResult} )
         .then((response) => {
                 console.log("Speech-to-text user output: " + transcript);
 				//insert SSML here
