@@ -289,10 +289,13 @@ const recognizeStream = google_stt_client
 			console.log("auth for user ",voiceItUserId);
 			const runAuth = util.promisify(doAuth);
 			//stops at this point
-			runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
+			var test = runAuth(voiceItUserId, passphrase, verifAudio);
+			
+			console.log("test is ",test)
+			/*.then((authResult) => {
 		console.log("passing in an authresult of ", authResult);
 		processContentAuth(utterance, authResult);
-		}).catch((err) => {console.log(err)});
+		}).catch((err) => {console.log(err)});*/
 	}
     });
 
