@@ -272,8 +272,9 @@ const recognizeStream = google_stt_client
     .streamingRecognize(stream_request)
     .on('error', console.error)
     .on('data', data => {
+		var utterance = data.results[0].alternatives[0].transcript
 		if (!authInProgress) {
-        processContent(data.results[0].alternatives[0].transcript);
+        processContent(utterance);
 		//
 		}
 	if (authInProgress) {
@@ -287,9 +288,9 @@ const recognizeStream = google_stt_client
 			else {verifAudio = Buffer.concat(msgBufd)}
 			console.log("auth for user ",voiceItUserId);
 			const runAuth = util.promisify(doAuth);
-			runAuth(voiceItUserId, passphrase, verifAudio).then().then((authResult) => {
+			runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
 		console.log("passing in an authresult of ", authResult);
-		processContentAuth(data.results[0].alternatives[0].transcript, authResult);
+		processContentAuth(utterance, authResult);
 		}).catch((err) => {console.log(err)});
 	}
     });
