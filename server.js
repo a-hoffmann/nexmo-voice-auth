@@ -290,8 +290,9 @@ const recognizeStream = google_stt_client
 			const runAuth = util.promisify(doAuth);
 			//stops at this point
 			var test = runAuth(voiceItUserId, passphrase, verifAudio);
-			
-			console.log("test is ",test)
+		test.then((authResult) => {
+		console.log("auth finished,",authResult)
+		});
 			/*.then((authResult) => {
 		console.log("passing in an authresult of ", authResult);
 		processContentAuth(utterance, authResult);
