@@ -35,10 +35,12 @@ var myVoiceIt = new voiceit2(process.env.VOICEIT_KEY, process.env.VOICEIT_TOKEN)
 const AUDIO_FILE_NAME = 'verif.wav';
 var file = null;
 var msgBufd = [];
+const voiceItUserId=process.env.VOICEIT_USER_ID
+const passphrase = process.env.VOICEIT_PASSPHRASE
 
 //set from Teneo
 var endCall = false;
-var voiceAuthObj = {};
+global.voiceAuthObj = {};
 var authInProgress = false;
 
 const nexmo = new Nexmo({
@@ -129,6 +131,16 @@ app.post('/webhooks/events', (req, res) => {
 	}
     res.sendStatus(200);
 });
+
+/**
+ * GET response to retrieve the locally saved verification audio file.
+ */
+
+app.get('/' + AUDIO_FILE_NAME, function(req, res){
+    res.sendFile(`${__dirname}/` + AUDIO_FILE_NAME);
+});
+
+
 
 /**
  * GET response for the default answer parameter. Required to initialise the conversation with caller.
@@ -222,23 +234,30 @@ async function sendStream(msg) {
 	if (authInProgress) {
 	//create a temp stream
 	//write msg into it
-	console.log("pushed msg ",msg,"to buf");
-	msgBufd.push(msg);
-	}
+	msgBufd.push(msg); //320 bytes
+		}
 }
 
 async function doAuth(userId, phrase, rec) {
 	console.log("starting auth with phrase", phrase);
-	console.log("rec is", rec); //
-	file = fs.createWriteStream('./temp.file')
+	 //
+	console.log("rec length",rec.length);
+	rec = Buffer.concat([header(rec.length, {sampleRate: 8000, channels: 1, bitDepth: 16}),rec]);
 	
-	file.write("crusten fusten");
+	//console.log("rec is", rec.toString('base64'));
+	
+	const writeFile = util.promisify(fs.writeFile);
+
+    // Write the binary audio content to a local file
+    await writeFile(AUDIO_FILE_NAME, rec, 'binary');
+	
+	/* 
 	file.end()
 	file.on('finish', function() {	
 		
 		console.log("completed temp is",file);
 		
-	/* var bufs = [];
+	var bufs = [];
 	rec.on('data', function(d){ bufs.push(d); });
 rec.on('end', function(){
   var buf = Buffer.concat(bufs);
@@ -246,17 +265,17 @@ let base64data = buf.toString('base64');
 	console.log(base64data);*/
 	//include file processing / writing here if the format is right
 	
-	myVoiceIt.voiceVerification({
+	myVoiceIt.voiceVerificationByUrl({
   userId : userId,
   contentLanguage : "en-US",
   phrase : phrase,
-  audioFilePath : './temp.file'
+  audioFileURL : 'https://' + your_hostname + '/' + AUDIO_FILE_NAME
 },(jsonResponse)=>{
   //handle response
   console.log(jsonResponse);
   console.log("response from voiceid ",jsonResponse.responseCode);
   authInProgress=false
-}); });
+}); //});
 }
 
 /**
@@ -269,12 +288,26 @@ const recognizeStream = google_stt_client
         processContent(data.results[0].alternatives[0].transcript);
 		//
 	if (authInProgress) {
-		console.log('msgBufd',msgBufd);
+		/*console.log('msgBufd, concat',Buffer.concat(msgBufd));
+		console.log('msgBufd, joind',Buffer.from(msgBufd.join('')).toString('base64'));
+		console.log('-----------------');
+		console.log(Buffer.concat(msgBufd).toString('base64') === Buffer.from(msgBufd.join('')).toString('base64'))
+		console.log('-----------------');*/
 		/*file = fs.createWriteStream('./temp.file');
 		file.write(Buffer.from(msgBufd));
 		//fs.createReadStream('./temp.file').pipe(Buffer.from(msgBufd));
 		file.end(function() {console.log('seems to have written out, starting auth');*/
-		doAuth("usr_99f9fcb72bc0414d90fc66acf8524748", "never forget tomorrow is a new day", Buffer.from(msgBufd));
+
+		var verifAudio;
+		//length of audio must be < 5 sec, we can trim before concatenating
+		if (msgBufd.length>250) {
+			console.log('slicing from', Math.abs(msgBufd.length-250), "to", msgBufd.length-1);
+			verifAudio=Buffer.concat(msgBufd.slice(Math.abs(msgBufd.length-250),msgBufd.length-1))
+			console.log("new length",verifAudio.length);
+			}
+			else {verifAudio = Buffer.concat(msgBufd)}
+			console.log("auth for user ",voiceItUserId);
+		doAuth(voiceItUserId, passphrase, verifAudio);
 		
 	}
     });
@@ -295,12 +328,12 @@ async function processContent(transcript) {
 				if (response.output.parameters.authInProgress==="true") {
 					authInProgress = true
 					voiceAuthObj=response.output.parameters.voiceAuthObj;
-					console.log("auth in progress, obj is ",voiceAuthObj)
+					console.log("auth to be started, obj is ",voiceAuthObj)
 				}
                 return response
             }
         ).then(({sessionId}) => sessionUniqueID = sessionId);
-
+		
     sendTranscriptVoiceNoSave(transcript);
 }
 
