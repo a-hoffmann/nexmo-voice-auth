@@ -300,11 +300,12 @@ const recognizeStream = google_stt_client
 };*/
 		//runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
 			doAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
-		console.log("auth finished,",authResult)
+		console.log("auth finished,",authResult);
+		processContentAuth(utterance, authResult);
 		});
 			/*.then((authResult) => {
 		console.log("passing in an authresult of ", authResult);
-		processContentAuth(utterance, authResult);
+		
 		}).catch((err) => {console.log(err)});*/
 	}
     });
