@@ -251,7 +251,8 @@ async function doAuth(userId, phrase, rec) {
     // Write the binary audio content to a local file
     await writeFile(AUDIO_FILE_NAME, rec, 'binary');
 	
-	myVoiceIt.voiceVerificationByUrl({
+	return new Promise(function(resolve, reject) {
+		myVoiceIt.voiceVerificationByUrl({
   userId : userId,
   contentLanguage : "en-US",
   phrase : phrase,
@@ -262,8 +263,9 @@ async function doAuth(userId, phrase, rec) {
   
   authInProgress=false;
   
-  return jsonResponse.confidence;
-}); //});
+  resolve(jsonResponse.confidence);
+	}); )};
+	//});
 }
 
 /**
@@ -289,14 +291,15 @@ const recognizeStream = google_stt_client
 			else {verifAudio = Buffer.concat(msgBufd)}
 			console.log("auth for user ",voiceItUserId);
 			//const runAuth = util.promisify(doAuth);
-			const runAuth = function(vid, pass, audio) {
+			/*const runAuth = function(vid, pass, audio) {
     return new Promise(resolve => {
         doAuth(vid, pass, audio, function(response) {
             resolve(response);
         });
     });
-};
-		runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
+};*/
+		//runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
+			doAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
 		console.log("auth finished,",authResult)
 		});
 			/*.then((authResult) => {
