@@ -251,12 +251,13 @@ async function doAuth(userId, phrase, rec) {
     // Write the binary audio content to a local file
     await writeFile(AUDIO_FILE_NAME, rec, 'binary');
 	
-	return await myVoiceIt.voiceVerificationByUrl({
+	myVoiceIt.voiceVerificationByUrl({
   userId : userId,
   contentLanguage : "en-US",
   phrase : phrase,
   audioFileURL : 'https://' + your_hostname + '/' + AUDIO_FILE_NAME
 },(jsonResponse)=>{
+	//get the output of this
   console.log(jsonResponse);
   
   authInProgress=false;
@@ -287,10 +288,15 @@ const recognizeStream = google_stt_client
 			}
 			else {verifAudio = Buffer.concat(msgBufd)}
 			console.log("auth for user ",voiceItUserId);
-			const runAuth = util.promisify(doAuth);
-			//stops at this point
-			var test = runAuth(voiceItUserId, passphrase, verifAudio);
-		test.then((authResult) => {
+			//const runAuth = util.promisify(doAuth);
+			const runAuth = function(vid, pass, audio) {
+    return new Promise(resolve => {
+        doAuth(vid, pass, audio, function(response) {
+            resolve(response);
+        });
+    });
+};
+		runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
 		console.log("auth finished,",authResult)
 		});
 			/*.then((authResult) => {
