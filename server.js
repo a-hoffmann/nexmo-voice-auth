@@ -239,9 +239,7 @@ async function sendStream(msg) {
 }
 
 async function doAuth(userId, phrase, rec) {
-	console.log("starting auth with phrase", phrase);
-	 //
-	console.log("rec length",rec.length);
+
 	rec = Buffer.concat([header(rec.length, {sampleRate: 8000, channels: 1, bitDepth: 16}),rec]);
 	
 	//console.log("rec is", rec.toString('base64'));
@@ -284,9 +282,7 @@ const recognizeStream = google_stt_client
 		var verifAudio;
 		//length of audio must be < 5 sec, we can trim before concatenating
 		if (msgBufd.length>250) {
-			console.log('slicing from', Math.abs(msgBufd.length-250), "to", msgBufd.length-1);
 			verifAudio=Buffer.concat(msgBufd.slice(Math.abs(msgBufd.length-250),msgBufd.length-1))
-			console.log("new length",verifAudio.length);
 			}
 			else {verifAudio = Buffer.concat(msgBufd)}
 			console.log("auth for user ",voiceItUserId);
