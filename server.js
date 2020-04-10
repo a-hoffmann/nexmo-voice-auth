@@ -264,7 +264,7 @@ async function doAuth(userId, phrase, rec) {
   authInProgress=false;
   
   resolve(jsonResponse.confidence);
-	}); )};
+	}); });
 	//});
 }
 
