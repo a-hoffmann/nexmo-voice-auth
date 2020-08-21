@@ -67,6 +67,18 @@ const stt_config = {
 const stt = require('@google-cloud/speech');
 const google_stt_client = new stt.SpeechClient(stt_config);
 
+  let streamingLimit = 150000; //150 sec
+  let recognizeStream = null;
+  let restartCounter = 0;
+  let audioInput = [];
+  let lastAudioInput = [];
+  let resultEndTime = 0;
+  let isFinalEndTime = 0;
+  let finalRequestEndTime = 0;
+  let newStream = true;
+  let bridgingOffset = 0;
+  let lastTranscriptWasFinal = false;
+
 /**
  * Separate configuration file for Google cloud TTS.
  * NOTE: You _have_ to keep a seperate variable for projectId and KeyFileName, otherwise there will be an exception.
@@ -258,7 +270,6 @@ async function doAuth(userId, phrase, rec) {
   console.log(authResponse);
   if (authResponse.status == 200) {
   authInProgress=false;
-  
   resolve(authResponse.confidence);
   }
   else {
@@ -352,31 +363,83 @@ async function processContentAuth(transcript, authResult) {
  */
 
 async function sendTranscriptVoiceNoSave(transcript) {
-
-    // Performs the text-to-speech request
-    const [response] = await google_tts_client.synthesizeSpeech({
-        input: (transcript.startsWith("<speak")) ? {ssml: transcript} : {text: transcript},
-        // Select the language and SSML voice gender (optional) 
-        voice: {languageCode: ttsLang, ssmlGender: 'FEMALE'},
-        // select the type of audio encoding
-        audioConfig: {audioEncoding: 'LINEAR16', sampleRateHertz: 8000}, 
-    });
 	
-	
+	function sendAudioInSequence (item, callback) {
+  setTimeout(() => {
+    streamResponse.send(item);
+    callback();
+  }, 15);
+}
 
     // Google voice response
     if(tts_response_provider === "google") {
-		formatForNexmo(response.audioContent,320).forEach(function(aud) {
+		var reqToSynthethize = {
+        input: (transcript.startsWith("<speak")) ? {ssml: transcript} : {text: transcript},
+        // Select the language and SSML voice gender (optional) 
+        voice: {languageCode: ttsLang, name: ttsLangName, ssmlGender: 'FEMALE'},
+        // select the type of audio encoding
+        audioConfig: {audioEncoding: 'LINEAR16', sampleRateHertz: 16000}, 
+    }
+	
+    // Performs the text-to-speech request
+    const [response] = await google_tts_client.synthesizeSpeech(reqToSynthethize);
+	
+		/*formatForNexmo(response.audioContent,640).forEach(function(aud) {
+			console.log(aud.length);
 			streamResponse.send(aud);
-		});
+			console.log("sent");
+		});*/
+		let requestz = formatForNexmo(response.audioContent,640).reduce((promiseChain, item) => {
+			return promiseChain.then(() => new Promise((resolve) => {
+				sendAudioInSequence(item, resolve);
+			}));
+			}, Promise.resolve());
+
+		//requestz.then(() => console.log('done'))
+
 		if (endCall) {
+			
 					nexmo.calls.update(CALL_UUID,{action:'hangup'},console.log('call ended'))
+					//streamResponse.close()
 				}
+    }
+	
+	if(tts_response_provider === "test") {
+		axios.post(testEndpoint, {
+		Text: transcript,
+        Checkbox: true,
+        Person: testVoiceName 
+  }).then(function (testResponse) {
+	  
+	  wav.fromBase64(testResponse.data.encoded);
+	  wav.toSampleRate(16000, {method: "linear"}); //other supported: cubic
+	  
+		/*formatForNexmo(wav.toBuffer(),640).forEach(function(aud) {
+			streamResponse.send(aud);
+		});*/
+		
+		let requestz = formatForNexmo(wav.toBuffer(),640).reduce((promiseChain, item) => {
+			return promiseChain.then(() => new Promise((resolve) => {
+				sendAudioInSequence(item, resolve);
+			}));
+			}, Promise.resolve());
+
+		//requestz.then(() => console.log('done'))
+		
+		if (endCall) {
+			
+					nexmo.calls.update(CALL_UUID,{action:'hangup'},console.log('call ended'))
+					//streamResponse.close()
+				}
+  }).catch(function (error) {
+    console.log(error);
+  });
     }
 
     // Nexmo voice response
     else if(tts_response_provider === "nexmo") {
-        nexmo.calls.talk.start(CALL_UUID, { text: transcript, voice_name: voiceName, loop: 1 }, (err, res) => {
+		console.log("sending to call uuid", CALL_UUID);
+        nexmo.calls.talk.start(CALL_UUID, { text: transcript, voice_name: 'Emma', loop: 1 }, (err, res) => {
             if(err) { console.error(err); }
             else {
                 console.log("Nexmo response sent: " + res);
@@ -387,6 +450,98 @@ async function sendTranscriptVoiceNoSave(transcript) {
         });
     }	
 }
+
+     
+
+  const speechCallback = stream => {
+    // Convert API result end time from seconds + nanoseconds to milliseconds
+    resultEndTime =
+      stream.results[0].resultEndTime.seconds * 1000 +
+      Math.round(stream.results[0].resultEndTime.nanos / 1000000);
+
+    // Calculate correct time based on offset from audio sent twice
+    const correctedTime =
+      resultEndTime - bridgingOffset + streamingLimit * restartCounter;
+
+    //process.stdout.clearLine();
+    //process.stdout.cursorTo(0);
+    let stdoutText = '';
+    if (stream.results[0] && stream.results[0].alternatives[0]) {
+      stdoutText =
+        correctedTime + ': ' + stream.results[0].alternatives[0].transcript;
+    }
+	processContent(stream.results[0].alternatives[0].transcript)
+  };
+
+  const audioInputStreamTransform = new Writable({
+    write(chunk, encoding, next) {
+      if (newStream && lastAudioInput.length !== 0) {
+        // Approximate math to calculate time of chunks
+        const chunkTime = streamingLimit / lastAudioInput.length;
+        if (chunkTime !== 0) {
+          if (bridgingOffset < 0) {
+            bridgingOffset = 0;
+          }
+          if (bridgingOffset > finalRequestEndTime) {
+            bridgingOffset = finalRequestEndTime;
+          }
+          const chunksFromMS = Math.floor(
+            (finalRequestEndTime - bridgingOffset) / chunkTime
+          );
+          bridgingOffset = Math.floor(
+            (lastAudioInput.length - chunksFromMS) * chunkTime
+          );
+
+          for (let i = chunksFromMS; i < lastAudioInput.length; i++) {
+            recognizeStream.write(lastAudioInput[i]);
+          }
+        }
+        newStream = false;
+      }
+
+      audioInput.push(chunk);
+
+      if (recognizeStream) {
+        recognizeStream.write(chunk);
+      }
+
+      next();
+    },
+
+    final() {
+      if (recognizeStream) {
+        recognizeStream.end();
+      }
+    },
+  });
+
+  function restartStream() {
+    if (recognizeStream) {
+      recognizeStream.removeListener('data', speechCallback);
+      recognizeStream = null;
+    }
+    if (resultEndTime > 0) {
+      finalRequestEndTime = isFinalEndTime;
+    }
+    resultEndTime = 0;
+
+    lastAudioInput = [];
+    lastAudioInput = audioInput;
+
+    restartCounter++;
+
+    if (!lastTranscriptWasFinal) {
+      process.stdout.write('\n');
+    }
+    process.stdout.write(
+      chalk.yellow(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
+    );
+
+    newStream = true;
+
+    startStream();
+  }
+
 /**
  * Constructs the byte array to be written to the Nexmo Websocket, in packets of byteLen length.
  * @param ac Audio response Buffer
@@ -401,5 +556,6 @@ function formatForNexmo(ac,byteLen) {
     for (var i=0;i<totalByteLength;i+=msgLength) {
 	    bufQueue.push(ac.slice(i,i+msgLength));
     }
+	//console.log("bufQueue length",bufQueue.length);
     return bufQueue;
 }
