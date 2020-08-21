@@ -6,4 +6,4 @@ node_modules*
 package-lock.json
 app.json
 serverTest.js
-verif.wav
+verif*

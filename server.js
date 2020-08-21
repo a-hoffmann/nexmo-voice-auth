@@ -242,8 +242,6 @@ async function doAuth(userId, phrase, rec) {
 
 	rec = Buffer.concat([header(rec.length, {sampleRate: 8000, channels: 1, bitDepth: 16}),rec]);
 	
-	//console.log("rec is", rec.toString('base64'));
-	
 	const writeFile = util.promisify(fs.writeFile);
 
     // Write the binary audio content to a local file
@@ -255,15 +253,18 @@ async function doAuth(userId, phrase, rec) {
   contentLanguage : "en-US",
   phrase : phrase,
   audioFileURL : 'https://' + your_hostname + '/' + AUDIO_FILE_NAME
-},(jsonResponse)=>{
+},(authResponse)=>{
 	//get the output of this
-  console.log(jsonResponse);
-  
+  console.log(authResponse);
+  if (authResponse.status == 200) {
   authInProgress=false;
   
-  resolve(jsonResponse.confidence);
+  resolve(authResponse.confidence);
+  }
+  else {
+	  resolve(authResponse.message)
+  }
 	}); });
-	//});
 }
 
 /**
@@ -286,23 +287,11 @@ const recognizeStream = google_stt_client
 			}
 			else {verifAudio = Buffer.concat(msgBufd)}
 			console.log("auth for user ",voiceItUserId);
-			//const runAuth = util.promisify(doAuth);
-			/*const runAuth = function(vid, pass, audio) {
-    return new Promise(resolve => {
-        doAuth(vid, pass, audio, function(response) {
-            resolve(response);
-        });
-    });
-};*/
-		//runAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
+		
 			doAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
 		console.log("auth finished,",authResult);
 		processContentAuth(utterance, authResult);
 		});
-			/*.then((authResult) => {
-		console.log("passing in an authresult of ", authResult);
-		
-		}).catch((err) => {console.log(err)});*/
 	}
     });
 
@@ -347,7 +336,7 @@ async function processContentAuth(transcript, authResult) {
 				if (response.output.parameters.authInProgress==="true") {
 					authInProgress = true
 					voiceAuthObj=response.output.parameters.voiceAuthObj;
-					console.log("auth to be started, obj is ",voiceAuthObj)
+					console.log("auth will be started, obj is ",voiceAuthObj)
 				}
                 return response
             }
