@@ -474,7 +474,7 @@ async function sendTranscriptVoiceNoSave(transcript) {
         correctedTime + ': ' + stream.results[0].alternatives[0].transcript;
     }
 	
-	var utterance = data.results[0].alternatives[0].transcript
+	var utterance = stream.results[0].alternatives[0].transcript
 		if (!authInProgress) {
         processContent(utterance);
 		//
