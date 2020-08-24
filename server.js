@@ -180,7 +180,9 @@ app.get('/webhooks/answer', (req, res) => {
                 // The headers parameter will be passed in the config variable below.
                 "headers": {
                     "language": sttLang,
-                    "uuid": req.url.split("&uuid=")[1].toString()
+                    "uuid": req.url.split("&uuid=")[1].toString(),
+					"caller": req.url.split("&from=")[1].split("&")[0].toString()
+					//"caller": req.url.split("&from=")[1].split("&")[0]
                 }
             }],
         }
@@ -381,7 +383,7 @@ async function sendTranscriptVoiceNoSave(transcript) {
         // Select the language and SSML voice gender (optional) 
         voice: {languageCode: ttsLang, name: ttsLangName, ssmlGender: 'FEMALE'},
         // select the type of audio encoding
-        audioConfig: {audioEncoding: 'LINEAR16', sampleRateHertz: 16000}, 
+        audioConfig: {audioEncoding: 'LINEAR16', sampleRateHertz: 8000}, 
     }
 	
     // Performs the text-to-speech request
@@ -392,7 +394,7 @@ async function sendTranscriptVoiceNoSave(transcript) {
 			streamResponse.send(aud);
 			console.log("sent");
 		});*/
-		let requestz = formatForNexmo(response.audioContent,640).reduce((promiseChain, item) => {
+		let requestz = formatForNexmo(response.audioContent,320).reduce((promiseChain, item) => {
 			return promiseChain.then(() => new Promise((resolve) => {
 				sendAudioInSequence(item, resolve);
 			}));
