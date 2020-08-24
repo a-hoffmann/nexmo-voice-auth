@@ -23,6 +23,7 @@ const TIE = require('@artificialsolutions/tie-api-client');
 const voiceName = process.env.NEXMO_VOICE || 'Brian';
 const sttLang = process.env.STT_LANG_CODE || 'en-GB';
 const ttsLang = process.env.TTS_LANG_CODE || 'en-GB';
+const ttsLangName = process.env.TTS_LANG_NAME || '';
 const ttsGender = process.env.TTS_GENDER || 'NEUTRAL';
 
 const recording = process.env.RECORDING || false;
