@@ -212,6 +212,8 @@ app.ws('/socket', (ws, req) => {
             let config = JSON.parse(msg);
             CALL_UUID = config["uuid"];
 			console.log('setting calluuid as ',CALL_UUID)
+			processContent(''); //send empty string for login
+			startStream();
         }
 
         // Send the user input as byte array to Google STT
@@ -282,34 +284,30 @@ async function doAuth(userId, phrase, rec) {
 	}); });
 }
 
+
+
+
 /**
  * Google STT function. When the data has been retrieved from Google cloud, processing from text to response speech is started.
- * already declared at the top
  */
+   function startStream() {
+    // Clear current audioInput
+    audioInput = [];
+    // Initiate (Reinitiate) a recognize stream
 recognizeStream = google_stt_client
     .streamingRecognize(stream_request)
-    .on('error', console.error)
-    .on('data', data => {
-		var utterance = data.results[0].alternatives[0].transcript
-		if (!authInProgress) {
-        processContent(utterance);
-		//
-		}
-	if (authInProgress) {
-		var verifAudio;
-		//length of audio must be < 5 sec, we can trim before concatenating
-		if (msgBufd.length>250) {
-			verifAudio=Buffer.concat(msgBufd.slice(Math.abs(msgBufd.length-250),msgBufd.length-1))
-			}
-			else {verifAudio = Buffer.concat(msgBufd)}
-			console.log("auth for user ",voiceItUserId);
-		
-			doAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
-		console.log("auth finished,",authResult);
-		processContentAuth(utterance, authResult);
-		});
-	}
-    });
+    .on('error', err => {
+		if (err.code === 4) {
+          console.log('Error code 4, restarting');
+		  //restartStream(recognizeStream);
+        } 
+          console.error('API request error ' + err.message);
+	})
+     .on('data', speechCallback);
+    // Restart stream when streamingLimit expires
+    setTimeout(restartStream, streamingLimit);
+   }
+
 
 /**
  * processContent is an asynchronous function to send input and retrieve output from a Teneo instance.
@@ -475,7 +473,27 @@ async function sendTranscriptVoiceNoSave(transcript) {
       stdoutText =
         correctedTime + ': ' + stream.results[0].alternatives[0].transcript;
     }
-	processContent(stream.results[0].alternatives[0].transcript)
+	
+	var utterance = data.results[0].alternatives[0].transcript
+		if (!authInProgress) {
+        processContent(utterance);
+		//
+		}
+	if (authInProgress) {
+		var verifAudio;
+		//length of audio must be < 5 sec, we can trim before concatenating
+		if (msgBufd.length>250) {
+			verifAudio=Buffer.concat(msgBufd.slice(Math.abs(msgBufd.length-250),msgBufd.length-1))
+			}
+			else {verifAudio = Buffer.concat(msgBufd)}
+			console.log("auth for user ",voiceItUserId);
+		
+			doAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
+		console.log("auth finished,",authResult);
+		processContentAuth(utterance, authResult);
+		});
+	}
+	
   };
 
   const audioInputStreamTransform = new Writable({
