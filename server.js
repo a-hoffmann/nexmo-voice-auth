@@ -280,8 +280,9 @@ async function doAuth(userId, phrase, rec) {
 
 /**
  * Google STT function. When the data has been retrieved from Google cloud, processing from text to response speech is started.
+ * already declared at the top
  */
-const recognizeStream = google_stt_client
+recognizeStream = google_stt_client
     .streamingRecognize(stream_request)
     .on('error', console.error)
     .on('data', data => {
