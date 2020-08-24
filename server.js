@@ -165,12 +165,12 @@ app.get('/webhooks/answer', (req, res) => {
     your_hostname = `${req.hostname}`;
 
     let nccoResponse = [
-	{
+	/*{
     "action": "talk",
     "text": "Hello, this is the IVR test system.",
     "voiceName": voiceName,
     "bargeIn": false
-  },
+  },*/
         {
             "action": "connect",
             "endpoint": [{
