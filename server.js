@@ -15,6 +15,7 @@ var wav = new WaveFile();
 
 const Nexmo = require('nexmo');
 const { Readable } = require('stream');
+const { Writable } = require('stream');
 const speech = require('@google-cloud/speech');
 
 const TIE = require('@artificialsolutions/tie-api-client');
