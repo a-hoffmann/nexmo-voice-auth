@@ -105,6 +105,7 @@ const google_tts_client = new tts.TextToSpeechClient(tts_config);
 
 // Global variable to keep track of the caller
 var CALL_UUID = null;
+var CALLER = null;
 // Change between "google" or "nexmo"
 var tts_response_provider = process.env.TTS_RESPONSE_PROVIDER || 'nexmo';
 var your_hostname = "";
@@ -211,6 +212,7 @@ app.ws('/socket', (ws, req) => {
             // UUID is captured here.
             let config = JSON.parse(msg);
             CALL_UUID = config["uuid"];
+			CALLER = config["from"]
 			console.log('setting calluuid as ',CALL_UUID)
 			processContent(''); //send empty string for login
 			startStream();
@@ -315,7 +317,7 @@ recognizeStream = google_stt_client
  * @param transcript Transcripted text from Google
  */
 async function processContent(transcript) {
-    await TIE.sendInput(process.env.TENEO_ENGINE_URL, sessionUniqueID, { text: transcript, channel: 'IVR'} )
+    await TIE.sendInput(process.env.TENEO_ENGINE_URL, sessionUniqueID, { text: transcript, channel: 'IVR', phone: CALLER} )
         .then((response) => {
                 console.log("Speech-to-text user output: " + transcript);
 				//insert SSML here
@@ -557,7 +559,7 @@ async function sendTranscriptVoiceNoSave(transcript) {
       process.stdout.write('\n');
     }
     process.stdout.write(
-      chalk.yellow(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
+      console.log(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
     );
 
     newStream = true;
