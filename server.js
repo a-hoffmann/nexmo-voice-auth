@@ -212,7 +212,7 @@ app.ws('/socket', (ws, req) => {
             // UUID is captured here.
             let config = JSON.parse(msg);
             CALL_UUID = config["uuid"];
-			CALLER = config["from"]
+			CALLER = config["caller"]
 			console.log('setting calluuid as ',CALL_UUID)
 			processContent(''); //send empty string for login
 			startStream();
