@@ -213,7 +213,7 @@ app.ws('/socket', (ws, req) => {
             let config = JSON.parse(msg);
             CALL_UUID = config["uuid"];
 			CALLER = config["caller"]
-			console.log('setting calluuid as ',CALL_UUID)
+			console.log('Call starting: uuid ',CALL_UUID)
 			processContent(''); //send empty string for login
 			startStream();
         }
@@ -275,7 +275,7 @@ async function doAuth(userId, phrase, rec) {
   audioFileURL : 'https://' + your_hostname + '/' + AUDIO_FILE_NAME
 },(authResponse)=>{
 	//get the output of this
-  console.log(authResponse);
+  //console.log(authResponse);
   if (authResponse.status == 200) {
   authInProgress=false;
   resolve(authResponse.confidence);
@@ -352,7 +352,7 @@ async function processContentAuth(transcript, authResult) {
 				if (response.output.parameters.authInProgress==="true") {
 					authInProgress = true
 					voiceAuthObj=response.output.parameters.voiceAuthObj;
-					console.log("auth will be started, obj is ",voiceAuthObj)
+					console.log("auth starting")
 				}
                 return response
             }
@@ -488,10 +488,10 @@ async function sendTranscriptVoiceNoSave(transcript) {
 			verifAudio=Buffer.concat(msgBufd.slice(Math.abs(msgBufd.length-250),msgBufd.length-1))
 			}
 			else {verifAudio = Buffer.concat(msgBufd)}
-			console.log("auth for user ",voiceItUserId);
+			//console.log("auth for user ",voiceItUserId);
 		
 			doAuth(voiceItUserId, passphrase, verifAudio).then((authResult) => {
-		console.log("auth finished,",authResult);
+		console.log("auth finished, got",authResult);
 		processContentAuth(utterance, authResult);
 		});
 	}
@@ -559,7 +559,7 @@ async function sendTranscriptVoiceNoSave(transcript) {
       process.stdout.write('\n');
     }
     process.stdout.write(
-      console.log(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
+      //console.log(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
     );
 
     newStream = true;
